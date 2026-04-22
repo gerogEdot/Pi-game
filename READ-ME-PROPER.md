@@ -1,12 +1,13 @@
 # Unknown PIgame
 
 ## *Description
+This game is a single player game that is a game that goes on for an infinite amount of time as long as you get under the time you had the go before. Essentially, it is a maze or running type of game that has a time limit that you have previously set. This is unique because of the way we are going to program it and the infinite cycle that it provides
 Single Player, Platformer Permadeath, Random upgrades, Speedrun   
 ### *Controls
-**A S D**: *Movement*
+**W A S D**: *Movement*
 **Spacebar**: *Jump*
 **C**: *Pause game*
-**C**: *Activate traits*
+**1**: *Activate traits*
 ### *Progression
 - Your goal is to beat your time during each run, to earn more point
 - The point are used to buy increased chances of a specific trait
