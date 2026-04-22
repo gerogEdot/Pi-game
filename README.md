@@ -29,5 +29,6 @@ Follow these  instructions to get the game running:
 ## *Team Members and Roles
 **Muhammed**: Level designer/ Programmer -
 > Creates levels in Physical form and help with programing assets]
+
 **George**:  Artist/ Programmer -
 >Draws the Characters, Background and other assets and helps with coding
