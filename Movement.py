@@ -7,53 +7,86 @@ debug_mode = True
 screen = pygame.display.set_mode((600,336))
 
 Character = pygame.image.load('Main-character.png')
-Character = pygame.transform.scale(Character, (Character.get_width()*.2, Character.get_height()*.2))
+Character = pygame.transform.scale(Character, (Character.get_width()*.5, Character.get_height()*.5))
 
-#backg = pygame.image.load('background.png')
-Background = pygame.transform.scale(backg, (backg.get_width()*2, backg.get_height()*2))
+Background = pygame.image.load('Background.png')
+Background = pygame.transform.scale(Background, (Background.get_width()*6, Background.get_height()*3))
 
 
-platforms = [
-    pygame.Rect(0,300,600,36),
-    pygame.Rect(200, 220, 120, 20),
-    pygame.Rect(400, 160, 100, 20)
-]
+platforms =[
+pygame.Rect(0,300,600,36),
+  pygame.Rect(200, 220, 120, 20),
+  pygame.Rect(400, 160, 100, 20)]
 
 clock = pygame.time.Clock()
 
+clock = pygame.time.Clock()
+
+running = True
+on_ground = False
+x = 0
+y = 240
+vy = 0
+gravity = 0.3
+
 while running:
-    screen.fill((0,0,0))
-    screen.blit(Background,(0,0))
-
-    player_rect = pygame.Rect(x , y, 30,30)
-
-    barier1_rect = pygame.Rect( 300 , 45, 30,30)
-    barier2_rect = pygame.Rect(250 , 450, 60,50)
-    barier3_rect = pygame.Rect(600 , 50, 60,40)
-
-    pygame.draw.rect(screen, (255, 0, 0),barier1_rect, 2)
-    pygame.draw.rect(screen, (255, 0, 0),barier2_rect, 2)
-    pygame.draw.rect(screen, (255, 0, 0),barier3_rect, 2)
-
-    pygame.draw.rect(screen, (0,255,0),player_rect, 2)
-
+    #Single key presses
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_UP]:
-        y = y-2
-    if keys[pygame.K_DOWN]:
-        y = y + 2
-    if keys[pygame.K_LEFT]:
-        x = x - 2
-    if keys[pygame.K_RIGHT]:
-        x = x + 2
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                y = y-10
 
-        if player_rect.colliderect(barier1_rect):
-            y = barier1_rect.top - player_rect.height
+
+
+    #Continuous movement press/press and hold
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP] and (on_ground == True):
+        vy = -8
+    if keys[pygame.K_DOWN]:
+        y = y+1
+    if keys[pygame.K_LEFT]:
+        x = x-1
+    if keys[pygame.K_RIGHT]:
+        x = x+1
+
+    on_ground = False
+
+    vy = gravity + vy
+    y = vy + y
+
+    screen.fill((0,0,0))
+
+
+    Character_rect = Character.get_rect(topleft=(x,y))
+
+    for platform in platforms:
+        if Character_rect.colliderect(platform):
+            if vy > 0:
+                y = platform.top - Character_rect.height
+                vy = 0
+                on_ground = True
+            if vy < 0:
+                y = platform.bottom
+                vy = 0
+            if x <  platform.left:
+                x = platform.left - Character_rect.width
+            if x >  platform.right:
+                x = platform.right
+    screen.blit(Background, (0,0))
+    screen.blit(Character, (x, y))
+
+    if debug_mode == True:
+        pygame.draw.rect(screen, (0, 255, 0), Character_rect, 2)
+        #pygame.draw.rect(screen, (255, 255, 255), floor_rect, 2)
+        for platform in platforms:
+            pygame.draw.rect(screen, (0, 255, 0), platform, 2)
+
 
     clock.tick(60)
 
     pygame.display.flip()
+
+pygame.quit()
