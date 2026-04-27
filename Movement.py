@@ -59,9 +59,9 @@ while running:
 
     screen.fill((0,0,0))
 
-
+#Spawn location
     Character_rect = Character.get_rect(topleft=(x,y))
-
+# Collision dectecting
     for platform in platforms:
         if Character_rect.colliderect(platform):
             if vy > 0:
@@ -78,9 +78,9 @@ while running:
     screen.blit(Background, (0,0))
     screen.blit(Character, (x, y))
 
+#Ability to see the hitboxes
     if debug_mode == True:
         pygame.draw.rect(screen, (0, 255, 0), Character_rect, 2)
-        #pygame.draw.rect(screen, (255, 255, 255), floor_rect, 2)
         for platform in platforms:
             pygame.draw.rect(screen, (0, 255, 0), platform, 2)
 
