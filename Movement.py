@@ -88,5 +88,10 @@ while running:
     clock.tick(60)
 
     pygame.display.flip()
+#Visible time in game
+countdown_
+
+
+
 
 pygame.quit()
