@@ -6,19 +6,27 @@ debug_mode = True
 
 screen = pygame.display.set_mode((600,336))
 
+font = pygame.font.SysFont("Georgia", 12)
+
 Character = pygame.image.load('Main-character.png')
 Character = pygame.transform.scale(Character, (Character.get_width()*.5, Character.get_height()*.5))
 
 Background = pygame.image.load('Background.png')
-Background = pygame.transform.scale(Background, (Background.get_width()*6, Background.get_height()*3))
+Background = pygame.transform.scale(Background, (Background.get_width()*8, Background.get_height()*4))
+
+#Visible time in game
+countdown_Time = 0 #Starting time
+start_time = pygame.time.get_ticks()
+
+past_second = (pygame.time.get_ticks() + start_time) / 1000
+current_time = max(7000, countdown_Time + int(past_second))
+
 
 
 platforms =[
 pygame.Rect(0,300,600,36),
   pygame.Rect(200, 220, 120, 20),
   pygame.Rect(400, 160, 100, 20)]
-
-clock = pygame.time.Clock()
 
 clock = pygame.time.Clock()
 
@@ -30,6 +38,7 @@ vy = 0
 gravity = 0.3
 
 while running:
+
     #Single key presses
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -40,8 +49,7 @@ while running:
                 y = y-10
 
 
-
-    #Continuous movement press/press and hold
+#Continuous movement press/press and hold
     keys = pygame.key.get_pressed()
     if keys[pygame.K_UP] and (on_ground == True):
         vy = -8
@@ -78,6 +86,7 @@ while running:
     screen.blit(Background, (0,0))
     screen.blit(Character, (x, y))
 
+
 #Ability to see the hitboxes
     if debug_mode == True:
         pygame.draw.rect(screen, (0, 255, 0), Character_rect, 2)
@@ -88,10 +97,10 @@ while running:
     clock.tick(60)
 
     pygame.display.flip()
-#Visible time in game
-countdown_
 
-
+    time_text = f"Time: {current_time}"
+    Clock_screen = font.render(time_text, True, (255, 255, 255))
+    screen.blit(Clock_screen, (519, 300))
 
 
 pygame.quit()
