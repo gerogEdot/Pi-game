@@ -6,7 +6,7 @@ debug_mode = True
 
 screen = pygame.display.set_mode((600,336))
 
-font = pygame.font.SysFont("Georgia", 12)
+font = pygame.font.Font('Bernard-MT-Condensed-Regular.ttf', 15)
 
 Character = pygame.image.load('Main-character.png')
 Character = pygame.transform.scale(Character, (Character.get_width()*.5, Character.get_height()*.5))
@@ -18,8 +18,7 @@ Background = pygame.transform.scale(Background, (Background.get_width()*8, Backg
 countdown_Time = 0 #Starting time
 start_time = pygame.time.get_ticks()
 
-past_second = (pygame.time.get_ticks() + start_time) / 1000
-current_time = max(7000, countdown_Time + int(past_second))
+
 
 
 
@@ -38,15 +37,14 @@ vy = 0
 gravity = 0.3
 
 while running:
-
+    past_second = (pygame.time.get_ticks() + start_time) / 1000
+    current_time = min(7000, countdown_Time + int(past_second))
+    if current_time == 7000:
+        running = False
     #Single key presses
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                y = y-10
 
 
 #Continuous movement press/press and hold
@@ -96,11 +94,13 @@ while running:
 
     clock.tick(60)
 
-    pygame.display.flip()
+
 
     time_text = f"Time: {current_time}"
-    Clock_screen = font.render(time_text, True, (255, 255, 255))
-    screen.blit(Clock_screen, (519, 300))
+    Clock_screen = font.render(time_text, True, (0, 0, 0))
+    screen.blit(Clock_screen, (519, 20))
+
+    pygame.display.flip()
 
 
 pygame.quit()
