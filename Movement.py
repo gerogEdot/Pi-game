@@ -25,7 +25,8 @@ start_time = pygame.time.get_ticks()
 platforms =[
 pygame.Rect(0,300,600,36),
   pygame.Rect(200, 220, 120, 20),
-  pygame.Rect(400, 160, 100, 20)]
+  pygame.Rect(400, 160, 100, 20),
+  pygame.Rect(517, 20, 50, 20)]
 
 clock = pygame.time.Clock()
 
@@ -87,7 +88,7 @@ while running:
 
 #Ability to see the hitboxes
     if debug_mode == True:
-        pygame.draw.rect(screen, (0, 255, 0), Character_rect, 2)
+        pygame.draw.rect(screen, (115, 255, 115), Character_rect, 2)
         for platform in platforms:
             pygame.draw.rect(screen, (0, 255, 0), platform, 2)
 
