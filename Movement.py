@@ -27,7 +27,8 @@ pygame.Rect(0,300,600,36),
   pygame.Rect(200, 220, 120, 20),
   pygame.Rect(400, 160, 100, 20),
   pygame.Rect(517, 20, 50, 20)]
-
+backclock =[
+  pygame.Rect(517, 20, 50, 20)]
 clock = pygame.time.Clock()
 
 running = True
@@ -92,7 +93,8 @@ while running:
         for platform in platforms:
             pygame.draw.rect(screen, (0, 255, 0), platform, 2)
 
-
+    for cb in backclock:
+        pygame.draw.rect(screen, (0, 255, 0), cb, 2)
     clock.tick(60)
 
 
