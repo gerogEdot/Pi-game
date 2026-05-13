@@ -21,6 +21,12 @@ bg_layers_raw = [
 ]
 bg_layers = [pygame.transform.scale(img, (SCREEN_W, SCREEN_H)) for img in bg_layers_raw]
 
+powerups =[
+    pygame.image.load('powerup(1).png'),
+    pygame.image.load('powerup(2).png'),
+    pygame.image.load('powerup(3).png'),
+    pygame.image.load('powerup(4).png')
+]
 NUM_ZONES = 4
 ZONE_WIDTH = SCREEN_W                        # 600px per zone
 TOTAL_WORLD_WIDTH = ZONE_WIDTH * NUM_ZONES   # 2400px total
@@ -31,7 +37,7 @@ scroll_speed = 2
 # Floor spans the full world
 floor = pygame.Rect(0, 300, TOTAL_WORLD_WIDTH, 36)
 
-# --- Generate non-overlapping platforms ---
+#  Generate non-overlapping platforms 
 def generate_platforms(world_width, num_platforms=24):
     plats = []
     GAP = 40          # minimum horizontal gap between platforms
