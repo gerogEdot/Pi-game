@@ -21,12 +21,13 @@ bg_layers_raw = [
 ]
 bg_layers = [pygame.transform.scale(img, (SCREEN_W, SCREEN_H)) for img in bg_layers_raw]
 
-powerups =[
+powerups = [
     pygame.image.load('powerup(1).png'),
     pygame.image.load('powerup(2).png'),
     pygame.image.load('powerup(3).png'),
     pygame.image.load('powerup(4).png')
 ]
+
 NUM_ZONES = 4
 ZONE_WIDTH = SCREEN_W                        # 600px per zone
 TOTAL_WORLD_WIDTH = ZONE_WIDTH * NUM_ZONES   # 2400px total
@@ -37,24 +38,25 @@ scroll_speed = 2
 # Floor spans the full world
 floor = pygame.Rect(0, 300, TOTAL_WORLD_WIDTH, 36)
 
-#  Generate non-overlapping platforms 
-def generate_platforms(world_width, num_platforms=24):
+# Generate non-overlapping platforms
+def generate_platforms(world_width, num_platforms=20):
     plats = []
-    GAP = 40          # minimum horizontal gap between platforms
-    MIN_X = 300       # clear start area
+    GAP = 80                          # large gap so platforms are well spaced
+    MIN_X = 200                       # clear start area
     PLAT_W_MIN, PLAT_W_MAX = 80, 140
     PLAT_H = 20
-    Y_MIN, Y_MAX = 150, 275
+    Y_MIN = SCREEN_H // 2             # never higher than screen midpoint (168px)
+    Y_MAX = 275                       # never lower than just above the floor
 
     attempts = 0
-    while len(plats) < num_platforms and attempts < 5000:
+    while len(plats) < num_platforms and attempts < 10000:
         attempts += 1
         w = random.randint(PLAT_W_MIN, PLAT_W_MAX)
         x = random.randint(MIN_X, world_width - w - 50)
         y = random.randint(Y_MIN, Y_MAX)
         candidate = pygame.Rect(x, y, w, PLAT_H)
-        # Inflate candidate by GAP on each side to enforce spacing
-        padded = candidate.inflate(GAP * 2, GAP * 2)
+        # Inflate by GAP on all sides to enforce spacing between platforms
+        padded = candidate.inflate(GAP * 1.2, GAP * 1.2)
         if not any(padded.colliderect(p) for p in plats):
             plats.append(candidate)
 
@@ -92,7 +94,7 @@ while running:
         x += 0.5
         camera_x += scroll_speed
 
-    # Clamp camera so it doesn't go past the end of the world
+    # Clamp camera so it doesn't scroll past the end of the world
     camera_x = min(camera_x, TOTAL_WORLD_WIDTH - SCREEN_W)
 
     on_ground = False
@@ -101,7 +103,7 @@ while running:
 
     screen.fill((0, 0, 0))
 
-    # --- Draw exactly 4 backgrounds, one per zone ---
+    # Draw exactly 4 backgrounds, one per zone
     zone_index = int(camera_x // ZONE_WIDTH)
     zone_offset = camera_x % ZONE_WIDTH
 
