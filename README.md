@@ -3,12 +3,11 @@
 ## *Description
 Single Player, Platformer Permadeath, Random upgrades, Speedrun   
 ### *Controls
-**A S D**: *Movement*
+** W D**: *Movement*
 **Spacebar**: *Jump*
 **C**: *Pause game*
-**C**: *Activate traits*
 ### *Progression
-- Your goal is to beat your time during each run, to earn more point
+- Your goal is to beat your time during each run, to earn more point while running from a monster that tries to kill you
 - The point are used to buy increased chances of a specific trait
 - The only win condition is to go below a certain time
 ## *Feature
@@ -19,6 +18,7 @@ Single Player, Platformer Permadeath, Random upgrades, Speedrun
 **Point system** Calculate how many coins per seconds shaved off best run to buy % increasers, creating a fun gameplay loop that gets harder the better you are
 
 **Random upgrades** At the start of the levels there is a random chance to ga get an upgrade, the chance to get certain upgrades can be increased.
+>The powerup are Speed, Jumb, Half of the time, and Extra Life
 ## *Installation / How to Run
 Follow these  instructions to get the game running:
 1. Clone this repository on git hub and extract the files
