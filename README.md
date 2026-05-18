@@ -32,3 +32,7 @@ Follow these  instructions to get the game running:
 
 **George**:  Artist/ Programmer -
 >Draws the Characters, Background and other assets and helps with coding
+
+1.	We fixed the background completely with a scrolling factor that allows the character to move across multiple backgrounds. Also, we made a randomizer for the parkour platforms to form, which helps with the repetition problem. We made a store / ending screen for the death of the character, which also is going to contain the powerups and description. We have started to implement the code for the power ups as well, which are a speed boost, jump boost, extra life and half-time for the counter. Lastly, we also made a monster that chases the character until the end of the run, which acts as the enemy / villain, that makes you lose as soon as he catches up to you. 
+
+2.	Creating a start screen, such as the one in geometry dash, where you can choose when to start the game and continue/restart when you choose to. We want to create this change to help the game run smoothly and look even better.
