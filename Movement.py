@@ -10,7 +10,7 @@ font = pygame.font.Font('Bernard-MT-Condensed-Regular.ttf', 15)
 # Load Character,
 Character = pygame.image.load('Main-character.png')
 Character = pygame.transform.scale(Character, (int(Character.get_width()*.7), int(Character.get_height()*.7)))
-
+Platform_img= pygame.image.load('platform(1).png')
 # Load Monster & Death Screen
 Monster = pygame.image.load('Monster.png')
 Monster = pygame.transform.scale(Monster, (int(Monster.get_width()*0.7), SCREEN_H))
@@ -215,6 +215,15 @@ while running:
 
     screen.blit(Character, (x, y))
 
+# Draw platforms with images
+for platform in platforms:
+    screen_platform = pygame.Rect(platform.x - camera_x, platform.y, platform.width, platform.height)
+    # Only draw if platform is visible on screen
+    if -platform.width < screen_platform.x < SCREEN_W:
+        # Scale platform image to match platform dimensions
+        scaled_platform = pygame.transform.scale(Platform_img, (platform.width, platform.height))
+        screen.blit(scaled_platform, screen_platform)
+        
     # Draw monster
     if -monster_rect.width < monster_screen_x < SCREEN_W:
         screen.blit(Monster, (monster_screen_x, monster_rect.y))
