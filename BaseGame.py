@@ -12,10 +12,10 @@ large_font = pygame.font.Font('Bernard-MT-Condensed-Regular.ttf', 30)
 # Load Character
 Character = pygame.image.load('Main-character.png')
 Character = pygame.transform.scale(Character, (int(Character.get_width()*.7), int(Character.get_height()*.7)))
-Platform_img = pygame.image.load('platform(1).png')  # FIXED: Corrected filename
+Platform_img = pygame.image.load('platform(1).png')
 
 # Load Monster & Death Screen
-Monster = pygame.image.load('monster.png')  # FIXED: Corrected filename (lowercase)
+Monster = pygame.image.load('monster.png')
 Monster = pygame.transform.scale(Monster, (int(Monster.get_width()*0.7), SCREEN_H))
 Permadeath = pygame.image.load('Deathscreen.png')
 Permadeath = pygame.transform.scale(Permadeath, (int(Permadeath.get_width()*2.2), int(Permadeath.get_height()*2.5)))
@@ -33,7 +33,7 @@ bg_layers_raw=[
 ]
 bg_layers = [pygame.transform.scale(img, (SCREEN_W, SCREEN_H)) for img in bg_layers_raw]
 
-# Load and resize Powerups - FIXED: Corrected filenames with underscores
+# Load and resize Powerups
 powerups = [
     pygame.image.load('powerup(1).png'),
     pygame.image.load('powerup(2).png'),
@@ -90,6 +90,7 @@ GAME_STATE_START = 0
 GAME_STATE_PLAYING = 1
 GAME_STATE_PAUSED = 2
 GAME_STATE_OVER = 3
+GAME_STATE_WON = 4  # --- ADDED: NEW GAME WON STATE ---
 
 # Game Variables
 clock = pygame.time.Clock()
@@ -111,6 +112,7 @@ speed_boost_time = 0
 lives = 0
 game_over = False
 death_time = 0
+win_time = 0  # --- ADDED: Tracks when player crossed the line ---
 
 # --- MONSTER PROGRESSIVE SPEED VARIABLES ---
 monster_world_x = -100.0
@@ -120,7 +122,6 @@ monster_max_speed = 4.5
 monster_acceleration = 0.05
 
 def reset_game():
-    #Reset game variables for a new run
     global x, y, vy, on_ground, speed_multiplier, speed_boost_time, lives
     global monster_world_x, monster_current_speed, camera_x, start_time, countdown_Time, time_offset
     global platforms, spawned_powerups
@@ -215,8 +216,39 @@ while running:
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_c:
-                    start_time += (current_ticks - pause_start_time)  # Don't count pause time
+                    start_time += (current_ticks - pause_start_time)
                     game_state = GAME_STATE_PLAYING
+
+        pygame.display.flip()
+        clock.tick(60)
+        continue
+
+    # ==================== GAME WON SCREEN ====================
+    if game_state == GAME_STATE_WON:
+        screen.fill((20, 20, 20))  # Clear screen with dark background
+
+        # Render victory messages
+        won_title = large_font.render("GAME WON!", True, (0, 255, 100))
+        won_desc = font.render("You successfully escaped the monster!", True, (255, 255, 255))
+
+        screen.blit(won_title, (SCREEN_W // 2 - won_title.get_width() // 2, SCREEN_H // 2 - 40))
+        screen.blit(won_desc, (SCREEN_W // 2 - won_desc.get_width() // 2, SCREEN_H // 2 + 10))
+
+        # Show prompt to go back to start screen after a small delay
+        if current_ticks - win_time > 2000:
+            return_text = font.render("Press C to return to Menu", True, (150, 150, 150))
+            screen.blit(return_text, (SCREEN_W // 2 - return_text.get_width() // 2, SCREEN_H - 50))
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_c:
+                        game_state = GAME_STATE_START
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
 
         pygame.display.flip()
         clock.tick(60)
@@ -224,20 +256,19 @@ while running:
 
     #  MAIN GAME LOOP
     if game_state == GAME_STATE_PLAYING:
-        # Calculate current game time while factoring in modifications
         raw_elapsed = (current_ticks - start_time) / 1000
         current_time = min(7000, max(0, countdown_Time + int(raw_elapsed) + time_offset))
 
-        # Check win condition
+        # Check alternate time win condition
         if current_time >= 7000:
-            game_state = GAME_STATE_OVER
-            death_time = pygame.time.get_ticks()
+            game_state = GAME_STATE_WON
+            win_time = pygame.time.get_ticks()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_c:  # Pause with C
+                if event.key == pygame.K_c:
                     game_state = GAME_STATE_PAUSED
                     pause_start_time = current_ticks
 
@@ -246,31 +277,29 @@ while running:
         if (keys[pygame.K_w] or keys[pygame.K_UP] or keys[pygame.K_SPACE]) and on_ground:
             vy = -8
 
-        # Right movement
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             x += 5
 
-        # Left movement
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
             x -= 5
 
-        # Apply speed boost multiplier to movement
         if speed_multiplier > 1.0:
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 x += (5 * (speed_multiplier - 1.0))
             if keys[pygame.K_a] or keys[pygame.K_LEFT]:
                 x -= (5 * (speed_multiplier - 1.0))
 
-            # Decay speed boost over time (5 seconds = 300 frames at 60fps)
             speed_boost_time -= 1
             if speed_boost_time <= 0:
                 speed_multiplier = 1.0
 
-        # --- ADDED: END BARRIER & LEFT WORLD BOUNDARY CLAMPING ---
-        # Prevent the player's right edge from passing TOTAL_WORLD_WIDTH
-        if x > TOTAL_WORLD_WIDTH - Character.get_width():
-            x = TOTAL_WORLD_WIDTH - Character.get_width()
-        # Prevent player from going left off the starting screen edge
+        # --- MODIFIED: END BARRIER TRIGGER ---
+        # When player crosses the end threshold, trigger victory screen instead of clamping position
+        if x >= TOTAL_WORLD_WIDTH - Character.get_width():
+            game_state = GAME_STATE_WON
+            win_time = pygame.time.get_ticks()
+            print("Victory! Reached the end barrier!")
+
         if x < 0:
             x = 0
 
@@ -278,19 +307,15 @@ while running:
         vy += gravity
         y += vy
 
-        # Camera follows player properly
         camera_x = max(0, x - SCREEN_W // 4)
         camera_x = min(camera_x, TOTAL_WORLD_WIDTH - SCREEN_W)
 
-        # Calculate speed linearly using current_time, capped at monster_max_speed
         monster_current_speed = min(monster_max_speed, monster_base_speed + (current_time * monster_acceleration))
 
-        # Monster Movement AI
         player_world_x = x
         if monster_world_x < player_world_x:
             monster_world_x += monster_current_speed
 
-        # Draw Scrolling Background
         zone_index = int(camera_x // ZONE_WIDTH)
         zone_offset = camera_x % ZONE_WIDTH
 
@@ -301,18 +326,15 @@ while running:
 
         Character_rect = Character.get_rect(topleft=(x - camera_x, y))
 
-        # Draw platforms
         for platform in platforms:
             screen_platform = pygame.Rect(platform.x - camera_x, platform.y, platform.width, platform.height)
-            if -platform.width < screen_platform.x < SCREEN_W:  # Only draw visible platforms
+            if -platform.width < screen_platform.x < SCREEN_W:
                 scaled_platform = pygame.transform.scale(Platform_img, (platform.width, platform.height))
                 screen.blit(scaled_platform, screen_platform)
 
-        # Translate Monster World Position to Screen Space
         monster_screen_x = monster_world_x - camera_x
         monster_rect = Monster.get_rect(topleft=(monster_screen_x, 0))
 
-        # Monster Collision Check
         if Character_rect.colliderect(monster_rect):
             if lives > 0:
                 lives -= 1
@@ -323,7 +345,6 @@ while running:
                 death_time = pygame.time.get_ticks()
                 print("Game Over! You were caught!")
 
-        # Floor collision
         screen_floor = pygame.Rect(floor.x - camera_x, floor.y, floor.width, floor.height)
         if Character_rect.colliderect(screen_floor):
             if vy > 0:
@@ -331,7 +352,6 @@ while running:
                 vy = 0
                 on_ground = True
 
-        # Platform collision
         for platform in platforms:
             screen_platform = pygame.Rect(platform.x - camera_x, platform.y, platform.width, platform.height)
             if Character_rect.colliderect(screen_platform):
@@ -347,7 +367,6 @@ while running:
                 if x > screen_platform.right + camera_x:
                     x = screen_platform.right + camera_x
 
-        # Render & Check Powerup Collisions
         for p in spawned_powerups:
             if p['active']:
                 screen_p_rect = pygame.Rect(p['rect'].x - camera_x, p['rect'].y, p['rect'].width, p['rect'].height)
@@ -360,47 +379,47 @@ while running:
                     if p['type'] == 0:
                         speed_multiplier = 2.0
                         speed_boost_time = 300
-                        print(" Speed boost activated! (5 seconds)")
+                        print("⚡ Speed boost activated! (5 seconds)")
                     elif p['type'] == 1:
                         vy = -10
-                        print("  Jump boost activated!")
+                        print("⬆️  Jump boost activated!")
                     elif p['type'] == 2:
                         lives += 1
-                        print(f"  Extra life! Total lives: {lives}")
+                        print(f"❤️  Extra life! Total lives: {lives}")
                     elif p['type'] == 3:
                         half_val = current_time // 2
                         time_offset -= (current_time - half_val)
-                        print(f"  Time halved! New time: {current_time // 2}s")
+                        print(f"⏱️  Time halved! New time: {current_time // 2}s")
 
         screen.blit(Character, (x - camera_x, y))
 
-        # Draw monster
         if -monster_rect.width < monster_screen_x < SCREEN_W:
             screen.blit(Monster, (monster_screen_x, monster_rect.y))
 
-        # Debug mode - draw collision boxes
         if debug_mode:
-            pygame.draw.rect(screen, (115, 255, 115), Character_rect, 2)  # Player
-            pygame.draw.rect(screen, (255, 0, 0), monster_rect, 2)        # Monster
-            pygame.draw.rect(screen, (0, 255, 0), screen_floor, 2)        # Floor
+            pygame.draw.rect(screen, (115, 255, 115), Character_rect, 2)
+            pygame.draw.rect(screen, (255, 0, 0), monster_rect, 2)
+            pygame.draw.rect(screen, (0, 255, 0), screen_floor, 2)
             for platform in platforms:
                 screen_platform = pygame.Rect(platform.x - camera_x, platform.y, platform.width, platform.height)
                 pygame.draw.rect(screen, (0, 255, 0), screen_platform, 2)
 
-            # --- ADDED: DRAW END BARRIER VISUAL LINE ---
-            # Draws a bright red vertical wall line at the edge of the map in debug mode
             pygame.draw.line(screen, (255, 0, 0), (TOTAL_WORLD_WIDTH - camera_x, 0), (TOTAL_WORLD_WIDTH - camera_x, SCREEN_H), 5)
 
-        # Draw UI
+        # ==================== DRAW UI TEXT ====================
         time_text = f"Time: {current_time}s | Lives: {lives} | Monster Speed: {monster_current_speed:.1f}"
         if speed_multiplier > 1.0:
             time_text += " | ⚡ SPEED BOOST!"
 
-        ui_text = font.render(time_text, True, (0, 0, 0))
-        screen.blit(ui_text, (10, 10))
+        ui_surface = font.render(time_text, True, (255, 255, 255))
+        pause_surface = font.render("Press C to Pause", True, (200, 200, 200))
 
-        pause_hint = font.render("Press C to Pause", True, (100, 100, 100))
-        screen.blit(pause_hint, (SCREEN_W - 150, 10))
+        # Text background plates for enhanced readability
+        pygame.draw.rect(screen, (20, 20, 20), (5, 5, ui_surface.get_width() + 10, 25))
+        pygame.draw.rect(screen, (20, 20, 20), (SCREEN_W - 155, 5, pause_surface.get_width() + 10, 25))
+
+        screen.blit(ui_surface, (10, 10))
+        screen.blit(pause_surface, (SCREEN_W - 150, 10))
 
         clock.tick(60)
         pygame.display.flip()
