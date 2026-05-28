@@ -2,7 +2,7 @@ import pygame
 import random
 
 pygame.init()
-debug_mode = False  # Set to True to see collision boxes
+debug_mode = False  # Set to True to see collision boxes and the End Barrier line
 SCREEN_W, SCREEN_H = 600, 336
 screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 pygame.display.set_caption("CHASE - A Parkour Platformer")
@@ -12,33 +12,33 @@ large_font = pygame.font.Font('Bernard-MT-Condensed-Regular.ttf', 30)
 # Load Character
 Character = pygame.image.load('Main-character.png')
 Character = pygame.transform.scale(Character, (int(Character.get_width()*.7), int(Character.get_height()*.7)))
-Platform_img = pygame.image.load('platform_1_.png')  # FIXED: Corrected filename
+Platform_img = pygame.image.load('platform(1).png')  # FIXED: Corrected filename
 
 # Load Monster & Death Screen
 Monster = pygame.image.load('monster.png')  # FIXED: Corrected filename (lowercase)
 Monster = pygame.transform.scale(Monster, (int(Monster.get_width()*0.7), SCREEN_H))
 Permadeath = pygame.image.load('Deathscreen.png')
-Permadeath = pygame.transform.scale(Permadeath, (int(Permadeath.get_width()*2), int(Permadeath.get_height()*2)))
+Permadeath = pygame.transform.scale(Permadeath, (int(Permadeath.get_width()*2.2), int(Permadeath.get_height()*2.5)))
 
 # Load Start Screen
 Start_Screen = pygame.image.load('Start_screen.png')
 Start_Screen = pygame.transform.scale(Start_Screen, (SCREEN_W, SCREEN_H))
 
 # Load Background Layers
-bg_layers_raw = [
-    pygame.image.load('Background.png'),
-    pygame.image.load('Background2.png'),
-    pygame.image.load('Background3.png'),
-    pygame.image.load('Background4.png'),  # FIXED: Use Background4 instead of duplicate
+bg_layers_raw=[
+    pygame.image.load("Background.png"),
+    pygame.image.load("Background(2).png"),
+    pygame.image.load("Background(3).png"),
+    pygame.image.load("Background(4).png"),
 ]
 bg_layers = [pygame.transform.scale(img, (SCREEN_W, SCREEN_H)) for img in bg_layers_raw]
 
 # Load and resize Powerups - FIXED: Corrected filenames with underscores
 powerups = [
-    pygame.image.load('powerup1.png'),
-    pygame.image.load('powerup2.png'),
-    pygame.image.load('powerup3.png'),
-    pygame.image.load('powerup4.png')
+    pygame.image.load('powerup(1).png'),
+    pygame.image.load('powerup(2).png'),
+    pygame.image.load('powerup(3).png'),
+    pygame.image.load('powerup(4).png')
 ]
 powerupimages = [pygame.transform.scale(img, (24, 24)) for img in powerups]
 
@@ -112,14 +112,17 @@ lives = 0
 game_over = False
 death_time = 0
 
-# Monster AI Tracking
+# --- MONSTER PROGRESSIVE SPEED VARIABLES ---
 monster_world_x = -100.0
 monster_base_speed = 1.9
+monster_current_speed = 1.9
+monster_max_speed = 4.5
+monster_acceleration = 0.05
 
 def reset_game():
-    """Reset game variables for a new run"""
+    #Reset game variables for a new run
     global x, y, vy, on_ground, speed_multiplier, speed_boost_time, lives
-    global monster_world_x, camera_x, start_time, countdown_Time, time_offset
+    global monster_world_x, monster_current_speed, camera_x, start_time, countdown_Time, time_offset
     global platforms, spawned_powerups
 
     # Reset player
@@ -137,8 +140,9 @@ def reset_game():
     countdown_Time = 0
     time_offset = 0
 
-    # Reset monster
+    # Reset monster position and progressive speed
     monster_world_x = -100.0
+    monster_current_speed = monster_base_speed
 
     # Regenerate platforms and powerups
     platforms = generate_platforms(TOTAL_WORLD_WIDTH)
@@ -179,9 +183,9 @@ while running:
 
     # ==================== GAME OVER SCREEN ====================
     if game_state == GAME_STATE_OVER:
-        screen.blit(Permadeath, (220, 60))
+        screen.blit(Permadeath, (200, 60))
 
-        restart_text = font.render("Press C to return to menu", True, (255, 255, 255))
+        restart_text = font.render(" ", True, (255, 255, 255))
         screen.blit(restart_text, (SCREEN_W // 2 - 120, SCREEN_H - 40))
 
         pygame.display.flip()
@@ -228,7 +232,6 @@ while running:
         if current_time >= 7000:
             game_state = GAME_STATE_OVER
             death_time = pygame.time.get_ticks()
-            # Don't continue, loop will handle GAME_OVER state next iteration
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -240,7 +243,6 @@ while running:
 
         keys = pygame.key.get_pressed()
 
-        # FIXED: Proper movement controls matching README (W/A/D or Arrow Keys)
         if (keys[pygame.K_w] or keys[pygame.K_UP] or keys[pygame.K_SPACE]) and on_ground:
             vy = -8
 
@@ -248,7 +250,7 @@ while running:
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             x += 5
 
-        # Left movement - ADDED
+        # Left movement
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
             x -= 5
 
@@ -264,19 +266,29 @@ while running:
             if speed_boost_time <= 0:
                 speed_multiplier = 1.0
 
+        # --- ADDED: END BARRIER & LEFT WORLD BOUNDARY CLAMPING ---
+        # Prevent the player's right edge from passing TOTAL_WORLD_WIDTH
+        if x > TOTAL_WORLD_WIDTH - Character.get_width():
+            x = TOTAL_WORLD_WIDTH - Character.get_width()
+        # Prevent player from going left off the starting screen edge
+        if x < 0:
+            x = 0
+
         on_ground = False
         vy += gravity
         y += vy
 
-        # FIXED: Camera follows player properly
-        # Keep player at roughly 1/4 from the left side of screen
+        # Camera follows player properly
         camera_x = max(0, x - SCREEN_W // 4)
         camera_x = min(camera_x, TOTAL_WORLD_WIDTH - SCREEN_W)
+
+        # Calculate speed linearly using current_time, capped at monster_max_speed
+        monster_current_speed = min(monster_max_speed, monster_base_speed + (current_time * monster_acceleration))
 
         # Monster Movement AI
         player_world_x = x
         if monster_world_x < player_world_x:
-            monster_world_x += monster_base_speed
+            monster_world_x += monster_current_speed
 
         # Draw Scrolling Background
         zone_index = int(camera_x // ZONE_WIDTH)
@@ -287,7 +299,6 @@ while running:
         if zone_index + 1 < NUM_ZONES:
             screen.blit(bg_layers[zone_index + 1], (ZONE_WIDTH - zone_offset, 0))
 
-        # FIXED: Adjust character position for camera
         Character_rect = Character.get_rect(topleft=(x - camera_x, y))
 
         # Draw platforms
@@ -305,7 +316,6 @@ while running:
         if Character_rect.colliderect(monster_rect):
             if lives > 0:
                 lives -= 1
-                # Push monster back in world space to buy player room
                 monster_world_x = max(-100.0, monster_world_x - 300)
                 print(f"Used extra life! Remaining: {lives}")
             else:
@@ -337,7 +347,7 @@ while running:
                 if x > screen_platform.right + camera_x:
                     x = screen_platform.right + camera_x
 
-        # --- Render & Check Powerup Collisions ---
+        # Render & Check Powerup Collisions
         for p in spawned_powerups:
             if p['active']:
                 screen_p_rect = pygame.Rect(p['rect'].x - camera_x, p['rect'].y, p['rect'].width, p['rect'].height)
@@ -347,21 +357,20 @@ while running:
 
                 if Character_rect.colliderect(screen_p_rect):
                     p['active'] = False
-                    if p['type'] == 0:    # powerup_1_: Speed boost (5 second duration)
+                    if p['type'] == 0:
                         speed_multiplier = 2.0
-                        speed_boost_time = 300  # 5 seconds at 60fps
-                        print("⚡ Speed boost activated! (5 seconds)")
-                    elif p['type'] == 1:  # powerup_2_: Jump boost
+                        speed_boost_time = 300
+                        print(" Speed boost activated! (5 seconds)")
+                    elif p['type'] == 1:
                         vy = -10
-                        print("⬆️  Jump boost activated!")
-                    elif p['type'] == 2:  # powerup_3_: Extra Life
+                        print("  Jump boost activated!")
+                    elif p['type'] == 2:
                         lives += 1
-                        print(f"❤️  Extra life! Total lives: {lives}")
-                    elif p['type'] == 3:  # powerup_4_: Half Time
+                        print(f"  Extra life! Total lives: {lives}")
+                    elif p['type'] == 3:
                         half_val = current_time // 2
-                        # Adjust time offset so current_time becomes equal to half_val
                         time_offset -= (current_time - half_val)
-                        print(f"⏱️  Time halved! New time: {current_time // 2}s")
+                        print(f"  Time halved! New time: {current_time // 2}s")
 
         screen.blit(Character, (x - camera_x, y))
 
@@ -378,8 +387,12 @@ while running:
                 screen_platform = pygame.Rect(platform.x - camera_x, platform.y, platform.width, platform.height)
                 pygame.draw.rect(screen, (0, 255, 0), screen_platform, 2)
 
+            # --- ADDED: DRAW END BARRIER VISUAL LINE ---
+            # Draws a bright red vertical wall line at the edge of the map in debug mode
+            pygame.draw.line(screen, (255, 0, 0), (TOTAL_WORLD_WIDTH - camera_x, 0), (TOTAL_WORLD_WIDTH - camera_x, SCREEN_H), 5)
+
         # Draw UI
-        time_text = f"Time: {current_time}s | Lives: {lives}"
+        time_text = f"Time: {current_time}s | Lives: {lives} | Monster Speed: {monster_current_speed:.1f}"
         if speed_multiplier > 1.0:
             time_text += " | ⚡ SPEED BOOST!"
 
